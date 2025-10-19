@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mentor Schedules by SWC</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="app">
+    <header class="app-header">
+      <h1>Mentor Schedules by SWC</h1>
+      <div class="date-greeting">
+        <span id="today-date"></span>
+        <span id="greeting"></span>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" type="text" placeholder="Search any mentor or add your own" />
+        <button id="addMentorBtn" class="glow-btn">Add custom mentor</button>
+      </div>
+    </header>
+
+    <main class="main-grid">
+      <aside class="sidebar">
+        <h2>Pick a mentor</h2>
+        <div id="mentorList" class="mentor-list"></div>
+      </aside>
+
+      <section class="content">
+        <div class="mentor-card glass">
+          <div class="mentor-header">
+            <img id="mentorPhoto" class="mentor-photo" alt="Mentor photo" />
+            <div>
+              <h2 id="mentorName"></h2>
+              <p id="mentorTitle" class="muted"></p>
+              <!-- somewhere near mentorName and mentorTitle -->
+              <span id="mentorAge" class="muted"></span>
+
+            </div>
+          </div>
+
+          <blockquote id="mentorQuote" class="quote"></blockquote>
+          <div class="tts-row">
+            <button id="ttsPlay" class="glow-btn" aria-label="Play quote">Play</button>
+            <button id="ttsStop" class="glow-btn" aria-label="Stop speaking">Stop</button>
+
+            <label class="tts-label">
+              Speed
+              <input id="voiceRate" type="range" min="0.5" max="1.5" step="0.1" value="1">
+              <span id="rateVal">1.0</span>
+            </label>
+          </div>
+
+          <div class="info-grid">
+            <div>
+              <h3>Profile</h3>
+              <p id="mentorProfile"></p>
+            </div>
+            <div>
+              <h3>Success story</h3>
+              <p id="mentorSuccess"></p>
+            </div>
+            <div>
+              <h3>Contributions</h3>
+              <p id="mentorContrib"></p>
+            </div>
+          </div>
+
+          <div class="schedule">
+            <h3>Daily timetable</h3>
+            <div id="scheduleGrid" class="schedule-grid"></div>
+            <div class="schedule-cta">
+              <button id="copyScheduleBtn" class="glow-btn">Copy timetable</button>
+              <a id="sourceLink" class="source-link" href="#" target="_blank" rel="noopener">View source</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>Tip: click a block to edit, then copy your new timetable</span>
+    </footer>
+  </div>
+
+  <template id="mentorItemTpl">
+    <button class="mentor-item"></button>
+  </template>
+
+  <template id="timeBlockTpl">
+    <div class="time-block" contenteditable="true"></div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
