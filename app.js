@@ -1778,7 +1778,7 @@ async function selectMentor(name) {
 
     const greetEl = document.getElementById("greeting");
     if (greetEl) {
-      greetEl.textContent = `${baseGreeting()}  Hi ${username}, this is ${
+      greetEl.textContent = `${baseGreeting()} ${username}, this is ${
         m.name
       }. I am rooting for you.`;
     }
