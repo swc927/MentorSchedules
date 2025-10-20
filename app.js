@@ -1527,6 +1527,121 @@ function formatToday() {
   if (greetingEl) greetingEl.textContent = baseGreeting();
 }
 
+// ==== NATURAL LANGUAGE LABELS  ADDED ====
+
+function lowerFirst(s) {
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+
+// Turn a schedule label like "Office reading and analysis" into a natural clause
+function labelToActivity(label) {
+  if (!label) return "";
+
+  const l = label.trim();
+
+  // Keyword based normalisations
+  const map = [
+    [/^wake\b/i, "waking up"],
+    [/^sleep\b/i, "sleeping"],
+    [/^breakfast\b/i, "having breakfast"],
+    [/^lunch\b/i, "having lunch"],
+    [/^dinner\b/i, "having dinner"],
+    [/^gym\b/i, "at the gym"],
+    [/^workout\b/i, "working out"],
+    [/^run\b/i, "running"],
+    [/^walk\b/i, "on a walk"],
+    [/^meditation\b/i, "meditating"],
+    [/^reading\b/i, "reading"],
+    [/^deep work\b/i, "in deep work"],
+    [/^meetings?\b/i, "in meetings"],
+    [/^reviews?\b/i, "in reviews"],
+    [/^collaboration\b/i, "collaborating"],
+    [/^family( time)?\b/i, "with family"],
+    [/^office reading and analysis\b/i, "reading and analysing in the office"],
+  ];
+
+  for (const [re, phrase] of map) {
+    if (re.test(l)) return phrase;
+  }
+
+  // Default: “doing …” with a lowercased first letter
+  return `doing ${lowerFirst(l)}`;
+}
+// ==== NATURAL LANGUAGE LABELS  ADDED ====
+
+// ==== NOW STATUS HELPERS START  ADDED ====
+
+function toMinutes(hhmm) {
+  const [h, m] = hhmm.split(":").map((n) => parseInt(n, 10));
+  return h * 60 + m;
+}
+
+function formatLocalTime(now = new Date()) {
+  let h = now.getHours();
+  const m = now.getMinutes();
+  const am = h < 12;
+  const h12 = ((h + 11) % 12) + 1;
+  const mm = m.toString().padStart(2, "0");
+  return `${h12}:${mm}${am ? "am" : "pm"}`;
+}
+
+/**
+ * Parse ["07:00 Deep work", "10:00 Meetings", ...] into
+ * [{start: 420, label: "Deep work"}, ...]
+ */
+function parseScheduleBlocks(scheduleArr) {
+  const blocks = [];
+  for (const line of scheduleArr) {
+    const match = line.match(/^(\d{2}:\d{2})\s+(.*)$/);
+    if (!match) continue;
+    const [, time, label] = match;
+    blocks.push({ start: toMinutes(time), label: label.trim() });
+  }
+  // Ensure sorted just in case
+  blocks.sort((a, b) => a.start - b.start);
+  return blocks;
+}
+
+/**
+ * Given a mentor schedule and current time, choose the block we are in.
+ * If we are before the first block, we show the last block from the previous cycle.
+ */
+function getCurrentScheduleLabel(scheduleArr, now = new Date()) {
+  const blocks = parseScheduleBlocks(scheduleArr);
+  if (!blocks.length) return "";
+
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Find last block with start <= now
+  let idx = -1;
+  for (let i = 0; i < blocks.length; i++) {
+    if (blocks[i].start <= nowMin) idx = i;
+  }
+  if (idx === -1) {
+    // Before first block today, treat as if we are still on the last block
+    idx = blocks.length - 1;
+  }
+  return blocks[idx].label;
+}
+
+let statusTimer = null;
+
+function updateGreetingWithStatus() {
+  const greetEl = document.getElementById("greeting");
+  const m = state.selected;
+  if (!greetEl || !m || !Array.isArray(m.schedule)) return;
+
+  const username = safeGet("mswc_username") || "friend";
+  const base = `${baseGreeting()} ${username}, this is ${
+    m.name
+  }. I am rooting for you.`;
+  const timeNow = formatLocalTime(new Date());
+  const raw = getCurrentScheduleLabel(m.schedule) || "in between blocks";
+  const activity = raw === "in between blocks" ? raw : labelToActivity(raw);
+  greetEl.innerHTML = `${base} It is <span class="time">${timeNow}</span> now, I am <span class="activity">${activity}</span> now.`;
+}
+
+// ==== NOW STATUS HELPERS END  ADDED ====
+
 // ==== AGE HELPERS START ====
 
 // Cache ages so we do not query repeatedly
@@ -1776,12 +1891,11 @@ async function selectMentor(name) {
       link.rel = "noopener noreferrer";
     }
 
-    const greetEl = document.getElementById("greeting");
-    if (greetEl) {
-      greetEl.textContent = `${baseGreeting()} ${username}, this is ${
-        m.name
-      }. I am rooting for you.`;
-    }
+    updateGreetingWithStatus();
+
+    // refresh every minute to keep time and block current
+    if (statusTimer) clearInterval(statusTimer);
+    statusTimer = setInterval(updateGreetingWithStatus, 60_000);
 
     // Announce details updates for screen readers (put aria-live on the details wrapper in your HTML)
     const detailsRegion = document.getElementById("mentorDetails");

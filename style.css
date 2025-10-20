@@ -54,6 +54,24 @@ h1 {
   text-shadow: var(--glow-1);
 }
 
+#greeting {
+  font-size: 1.4rem;
+  text-align: left;
+  color: #fff;
+}
+
+#greeting .time {
+  color: #7df9ff;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(125, 249, 255, 0.6);
+}
+
+#greeting .activity {
+  color: #ffb3ec;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(255, 179, 236, 0.6);
+}
+
 .date-greeting {
   display: flex;
   gap: 16px;
